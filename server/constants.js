@@ -8,5 +8,10 @@ module.exports = {
       data: 'data_test',
       projects: 'projects.json',
     }
-  }
+  },
+  status: {
+    todo: 'todo',
+    inprogress: 'inprogress',
+    complete: 'complete'
+  },
 }
