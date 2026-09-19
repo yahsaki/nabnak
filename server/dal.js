@@ -70,6 +70,25 @@ class Dal {
       this.#data, this.#formatJsonForDebug)
     console.log(`dal.saveProject: data saved to disk`)
     this.#dirty = true
+
+    return {success:true}
+  }
+  deleteProject(id) {
+    const i = this.#data.projects.findIndex(x => x.id === id)
+    if (i > -1) {
+      this.#data.projects.splice(i, 1)
+      console.log(`dal.deleteProject: successfully removed project by id '${id}'`)
+    } else {
+      console.log(`dal.deleteProject: failed to find project by id '${id}'`)
+      return {success:false}
+    }
+
+    util.fs.writeJson(
+      path.join(__dirname, this.#dataPath, this.#dataFilename),
+      this.#data, this.#formatJsonForDebug)
+    console.log(`dal.deleteProject: data saved to disk`)
+    this.#dirty = true
+    return {success:true}
   }
 }
 

@@ -5,6 +5,9 @@ const helpers = require('./helpers')
 const Dal = require('./dal')
 let dal
 
+// 260919: not actually planning on cloning this all over the place yet, more of a note atm
+const responseTemplate = {data:{},messages:[],error:''}
+
 const validate = {
   project: {
     get: (args) => {
@@ -39,8 +42,17 @@ const validate = {
 
       return errors
     },
-    delete: (args) => {},
-    update: (args) => {},
+    delete: (args) => {
+      let errors = []
+      if (!args.q.id?.length) {
+        errors.push('query parameter id invalid')
+      }
+
+      return errors
+    },
+    update: (args) => {
+      throw 'unimplemented'
+    },
   }
 }
 class Handler {
@@ -55,7 +67,7 @@ class Handler {
   project = {
     get: (args) => {
       const errors = validate.project.get(args)
-      if (errors.length) { args.res.writeHead(400);res.end(`{"error":"${errors.join(', ')}"}`);return }
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
 
       let responseData
       if (Object.hasOwn(args.q, 'id')) {
@@ -75,7 +87,7 @@ class Handler {
       args.body.project = {...constants.schema.project, ...args.body.project}
 
       const errors = validate.project.post(args)
-      if (errors.length) { args.res.writeHead(400);res.end(`{"error":"${errors.join(', ')}"}`);return }
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
 
       const project = args.body.project
       const date = new Date()
@@ -85,9 +97,45 @@ class Handler {
       dal.createProject(project)
 
       args.res.writeHead(204)
-      args.res.end(JSON.stringify({projectId:project.id}))
+      args.res.end(JSON.stringify({data:{projectId:project.id}}))
       return project.id
     },
+    delete: (args) => {
+      const errors = validate.project.delete(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      const deleteRes = dal.deleteProject(args.q.id)
+      if (deleteRes.success) {
+        args.res.writeHead(204)
+      } else {
+        // TODO: send codes from dal so we arent assuming its a 404 in cases like this
+        args.res.writeHead(404)
+      }
+
+      args.res.end()
+      return deleteRes
+    },
+    update: (args) => {
+      /*
+        CRUDing stories/tasks will happen elsewhere so focus only on project properties like name and desc
+        I think name and desc is all we have anyway. yeap thats it
+
+        so patch call data should look like...
+        {
+          'name': { value: '' },
+          'description: { value: '' },
+        }
+
+        how about:
+        [
+          {name: 'description', value: '' }
+          {name: 'name', value: '' }
+        ]
+
+        lets go with second option, seems more standard
+      */
+      throw 'unimplemented'
+    }
   }
 }
 

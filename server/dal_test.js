@@ -47,5 +47,17 @@ const dal = new Dal({testing:true})
   const projectsFull = dal.projectsFull
   if (projectsFull[0].stories.length !== 0 || projectsFull[1].tasks.length !== 0) { throw `get projects full schema broken` }
   console.log('dal tests executed successfully')
+
+  console.log('delete project fail')
+  let deleteRes = dal.deleteProject('ttt')
+  if (deleteRes.success) { throw `delete project shouldve failed` }
+
+  console.log('delete project success')
+  deleteRes = dal.deleteProject(project1.id)
+  if (!deleteRes.success) { throw `failed to delete project` }
+  const projectsAfterDelete = dal.projects
+  if (projectsAfterDelete.length !== 1) { throw `project count after deletion should be 1` }
+  if (projectsAfterDelete[0].id !== project0.id) { throw `surviving project should be zeroeth project created` }
+
   process.exit(0)
 })()
