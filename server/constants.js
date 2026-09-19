@@ -1,12 +1,14 @@
 module.exports = {
-  settings: {
-    path: {
-      data: 'data',
-      projects: 'projects.json',
-    },
-    path_test: {
-      data: 'data_test',
-      projects: 'projects.json',
+  schema: {
+    project: {
+      id: null,
+      date_create: null,
+      date_update: null,
+      name: null,
+      description: null,
+      stories: [],
+      tasks: [],
+      tags: [],
     }
   },
   status: {

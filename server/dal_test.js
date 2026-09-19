@@ -6,7 +6,7 @@ const dal = new Dal({testing:true})
   await util.delay(100)
   console.log('dal data', dal.data)
 
-  console.log('save project')
+  console.log('create project')
   let date = new Date()
   const project0 = {
     id: util.uuid(),
@@ -18,7 +18,7 @@ const dal = new Dal({testing:true})
     tasks: [],
     tags: [],
   }
-  dal.saveProject(project0)
+  dal.createProject(project0)
   const project0_fetched = dal.getProject(project0.id)
   if (!project0_fetched) { throw `failed to fetch project0` }
   if (project0_fetched.name !== project0.name) { throw `saved project's name does not match initial name` }
@@ -34,12 +34,18 @@ const dal = new Dal({testing:true})
     tasks: [],
     tags: [],
   }
-  dal.saveProject(project1)
+  dal.createProject(project1)
   const project1_fetched = dal.getProject(project1.id)
   if (project0_fetched.id === project1_fetched.id) { throw `somehow both projects have the same id` }
+
+  console.log('get projects aggregated')
   const projects = dal.projects
   if (projects.length !== 2) { throw `should have 2 projects, found ${projects.length}` }
+  if (projects[0].storyCount !== 0 || projects[1].taskCount !== 0) { throw `get projects simplified schema broken` }
 
+  console.log('get projects full')
+  const projectsFull = dal.projectsFull
+  if (projectsFull[0].stories.length !== 0 || projectsFull[1].tasks.length !== 0) { throw `get projects full schema broken` }
   console.log('dal tests executed successfully')
-
+  process.exit(0)
 })()

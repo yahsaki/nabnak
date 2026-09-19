@@ -1,7 +1,8 @@
 const http = require('node:http')
 const url = require('node:url')
 const qs = require('node:querystring')
-const handler = require('./handler')
+const Handler = require('./handler')
+const handler = new Handler({})
 
 const port = 8000
 const host = 'localhost'
