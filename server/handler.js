@@ -51,7 +51,52 @@ const validate = {
       return errors
     },
     update: (args) => {
-      throw 'unimplemented'
+      let errors = []
+      if (!args.q.id?.length) {
+        errors.push('query parameter id invalid');return errors
+      }
+
+      // in order to keep my error codes accurate, im only going to check for 400 related content here
+      // and im leaving the 404 check to the caller. I could move the 404 check here but then the entire
+      // pattern will be destroyed if I do that and I dont feel like refactoring everything yet
+
+      
+      if (!Object.keys(args.body).length) {
+        // the code for this should be a 204... sigh, already another state that needs refactoring. this
+        // means im going to do the 404 check here now, forget it
+        errors.push('No fields to update');return errors
+      }
+
+      const project = dal.projects.find(x => x.id === args.q.id)
+      if (!project) {
+        // heres our 404 now
+        errors.push('project not found');return errors
+      }
+
+      // statically check for specific fields here. one day make it not so static
+      const updateableFields = ['name', 'description']
+      for (const prop in args.body) {
+        if (!~updateableFields.indexOf(prop)) {
+          // finally a 400
+          errors.push(`field '${prop}' not updateable`)
+        }
+
+        // todo: add check for bad typed description field, either string or null. 'op' values fixes this
+      }
+
+      if (!args.body.name?.length) {
+        errors.push(`name field cannot be empty`)
+      } else {
+        // todo: unit test this check
+        //if (typeof args.body.name !== 'string') { errors.push('name field must be a non nullable string') }
+
+        const collidingNameProject = dal.projects.find(x => x.name.toLowerCase() === args.body.name.toLowerCase())
+        if (collidingNameProject && collidingNameProject.id !== args.q.id) {
+          errors.push(`name field must be unique`)
+        }
+      }
+
+      return errors
     },
   }
 }
@@ -133,8 +178,28 @@ class Handler {
         ]
 
         lets go with second option, seems more standard
+        
+        260922: RFC standards https://ietf.org
+          RFC 7396:
+          {
+            field0: "new val",
+            field1: null
+          }
+          RFC 6902
+          [
+            {op:'replace', 'path': '/field0', 'value': 'new val'},
+            {op:'remove', 'path': 'field1'}
+          ]
+        going with RFC 7396 for default reasons
       */
-      throw 'unimplemented'
+      const errors = validate.project.update(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      dal.updateProject(args.q.id, args.body)
+      
+      args.res.writeHead(204)
+      args.res.end()
+      return
     }
   }
 }

@@ -34,13 +34,9 @@ class Dal {
   get projects() {
     // 260919: I dont particularly like these due to how easy it is to forget to update when schema changes
     return this.#data.projects.map(x => ({
-      id: x.id,
-      date_create: x.date_create,
-      date_update: x.date_update,
-      name: x.name,
+      ...x,
       storyCount: x.stories.length,
       taskCount: x.tasks.length,
-      tags: x.tags
     }))
   }
   // 260919: there is no way from the API to call this fn atm
@@ -88,6 +84,18 @@ class Dal {
       this.#data, this.#formatJsonForDebug)
     console.log(`dal.deleteProject: data saved to disk`)
     this.#dirty = true
+    return {success:true}
+  }
+  updateProject(id, fields) {
+    // 260922: will not be mutating stories/tasks here
+    let changes = []
+    const project = this.#data.projects.find(x => x.id === id)
+    for (const field in fields) {
+      // this should be pushed upstream
+      changes.push(`[${field} previous value: '${project[field]}', new value: '${fields[field]}']`)
+      project[field] = fields[field]
+    }
+    console.log(`dal.updateProject: changes: ${changes.join(', ')}`)
     return {success:true}
   }
 }
