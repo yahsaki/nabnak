@@ -95,9 +95,27 @@ class Dal {
       changes.push(`[${field} previous value: '${project[field]}', new value: '${fields[field]}']`)
       project[field] = fields[field]
     }
+    // todo: unit test date updated
+    if (changes.length) { project.date_updated = new Date().toISOString() }
+
     console.log(`dal.updateProject: changes: ${changes.join(', ')}`)
     return {success:true}
   }
+  //getStory(id, projectId) { throw 'unimplemented' }
+  //createStory(projectId, story) { throw 'unimplemented' }
+  //deleteStory(id, projectId) { throw 'unimplemented' }
+  //updateStory(id, projectId, fields) { throw 'unimplemented' }
+  // I feel like skipping stories and going straight to tasks
+  getTask(id, projectId) { throw 'unimplemented' }
+  createTask(projectId, task) { throw 'unimplemented' }
+  deleteTask(id, projectId) { throw 'unimplemented' }
+  updateTask(id, projectId, fields) { throw 'unimplemented' }
+  // extremely yuck result of using json as a datastore: have to pass all ids along. I refuse to search all
+  // projects for a nested comment with a specific id(and the likes). shouldve just used sqlite but still
+  // rather not
+  createTaskComment(id, taskId, projectId, comment) { throw 'unimplemented' }
+  deleteTaskComment(id, taskId, projectId) { throw 'unimplemented' }
+  updateTaskComment(id, taskId, projectId, fields) { throw 'unimplemented' }
 }
 
 module.exports = Dal

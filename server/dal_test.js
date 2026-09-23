@@ -4,6 +4,16 @@ const dal = new Dal({testing:true})
 
 ;(async () => {
   await util.delay(100)
+  await project()
+  
+
+  process.exit(0)
+})()
+
+async function task() {
+  throw 'unimplemented'
+}
+async function project() {
   console.log('dal data', dal.data)
 
   console.log('create project')
@@ -59,5 +69,24 @@ const dal = new Dal({testing:true})
   if (projectsAfterDelete.length !== 1) { throw `project count after deletion should be 1` }
   if (projectsAfterDelete[0].id !== project0.id) { throw `surviving project should be zeroeth project created` }
 
-  process.exit(0)
-})()
+  console.log('update project success')
+  const project2 = {
+    id: util.uuid(),
+    date_create: date.toISOString(),
+    date_update: date.toISOString(),
+    name: `name original`,
+    description: 'description original',
+    stories: [],
+    tasks: [],
+    tags: [],
+  }
+  dal.createProject(project2)
+  dal.updateProject(project2.id, {
+    name: 'name updated',
+    description: 'description updated'
+  })
+  const project2_fetched = dal.getProject(project2.id)
+  if (project2_fetched.name !== 'name updated' && project2_fetched.description !== 'description updated') {
+    throw `update project fail`
+  }
+}

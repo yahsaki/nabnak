@@ -8,6 +8,8 @@ let dal
 // 260919: not actually planning on cloning this all over the place yet, more of a note atm
 const responseTemplate = {data:{},messages:[],error:''}
 
+// 260922: im letting type validation go. this is a personal project, doesnt need to be perfect. that means
+// im leaving RFC 6902 alone for now
 const validate = {
   project: {
     get: (args) => {
@@ -60,7 +62,6 @@ const validate = {
       // and im leaving the 404 check to the caller. I could move the 404 check here but then the entire
       // pattern will be destroyed if I do that and I dont feel like refactoring everything yet
 
-      
       if (!Object.keys(args.body).length) {
         // the code for this should be a 204... sigh, already another state that needs refactoring. this
         // means im going to do the 404 check here now, forget it
@@ -98,7 +99,57 @@ const validate = {
 
       return errors
     },
-  }
+  },
+  story: {
+    get: (args) => {
+      throw 'unimplemented'
+    },
+    post: (args) => {
+      throw 'unimplemented'
+    },
+    delete: (args) => {
+      throw 'unimplemented'
+    },
+    update: (args) => {
+      throw 'unimplemented'
+    },
+  },
+  task: {
+    get: (args) => {
+      let errors = []
+      if (Object.hasOwn(args.q, 'id')) {
+        if (!args.q.id.length) {
+          errors.push('query parameter id invalid')
+        }
+      }
+
+      if (!args.q.projectId?.length) {
+        errors.push('query parameter projectId invalid')
+      }
+
+      return errors
+    },
+    post: (args) => {
+      throw 'unimplemented'
+    },
+    delete: (args) => {
+      throw 'unimplemented'
+    },
+    update: (args) => {
+      throw 'unimplemented'
+    },
+    comment: {
+      post: (args) => {
+        throw 'unimplemented'
+      },
+      delete: (args) => {
+        throw 'unimplemented'
+      },
+      update: (args) => {
+        throw 'unimplemented'
+      },
+    }
+  },
 }
 class Handler {
   constructor(args) {
@@ -200,6 +251,45 @@ class Handler {
       args.res.writeHead(204)
       args.res.end()
       return
+    }
+  }
+  story = {
+    get: (args) => {
+      throw 'unimplemented'
+    },
+    post: (args) => {
+      throw 'unimplemented'
+    },
+    delete: (args) => {
+      throw 'unimplemented'
+    },
+    update: (args) => {
+      throw 'unimplemented'
+    },
+  }
+  task = {
+    get: (args) => {
+      throw 'unimplemented'
+    },
+    post: (args) => {
+      throw 'unimplemented'
+    },
+    delete: (args) => {
+      throw 'unimplemented'
+    },
+    update: (args) => {
+      throw 'unimplemented'
+    },
+    comment: {
+      post: (args) => {
+        throw 'unimplemented'
+      },
+      delete: (args) => {
+        throw 'unimplemented'
+      },
+      update: (args) => {
+        throw 'unimplemented'
+      },
     }
   }
 }
