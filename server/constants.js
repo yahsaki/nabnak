@@ -2,8 +2,8 @@ module.exports = {
   schema: {
     project: {
       id: null,
-      date_create: null,
-      date_update: null,
+      date_created: null,
+      date_updated: null,
       name: null,
       description: null,
       stories: [],
@@ -12,8 +12,8 @@ module.exports = {
     },
     task: {
       id: null,
-      date_create: null,
-      date_update: null,
+      date_created: null,
+      date_updated: null,
       // /UPDATE-able fields
       name: null,
       description: null,

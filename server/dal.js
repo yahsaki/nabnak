@@ -4,6 +4,7 @@ const util = require('./util')
 
 // 260918: renamed existing dal to handler since it wasnt a real data access layer
 // going to implement caching and what not here as intended but way sooner than later
+// 260927 TODO: I swear I wrote this somewhere, but we should send specific return codes for each fn->logic path
 class Dal {
   #data
   #dataPath

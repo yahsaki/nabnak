@@ -4,7 +4,7 @@ const dal = new Dal({testing:true})
 const constants = require('./constants')
 ;(async () => {
   await util.delay(100)
-  //await project()
+  await project()
   await task()
 
   process.exit(0)
@@ -15,8 +15,8 @@ async function task() {
   let date = new Date()
   const project0 = {
     id: util.uuid(),
-    date_create: date.toISOString(),
-    date_update: date.toISOString(),
+    date_created: date.toISOString(),
+    date_updated: date.toISOString(),
     name: `project name 0`,
     description: 'description',
     stories: [],
@@ -29,25 +29,38 @@ async function task() {
   const task0 = {
     ...constants.schema.task,
     id: util.uuid(),
-    date_create: date.toISOString(),
-    date_update: date.toISOString(),
+    date_created: date.toISOString(),
+    date_updated: date.toISOString(),
     name: 'task name 0',
     description: 'task description 0',
   }
   dal.createTask(project0.id, task0);await util.delay(100)
 
-  console.log('get task')
-  const task0_fetched = dal.getTask(task0.id, project0.id)
-  if (task0.id !== task0_fetched.id) { throw `really stupid error occurred` }
-  console.log(task0_fetched)
+  //console.log('get task')
+  //const task0_fetched = dal.getTask(task0.id, project0.id)
+  //if (task0.id !== task0_fetched.id) { throw `really stupid error occurred` }
+  //console.log(task0_fetched)
   
+  console.log('update task')
+  const taskUpdates = {
+    name: 'task name updated 0',
+  }
+  const updateTaskResult = dal.updateTask(task0.id, project0.id, taskUpdates);util.delay(100)
+  if (!updateTaskResult.success) { console.error(`failed to update task`);process.exit(1) }
+
+  console.log('get task')
+  const task_updated = dal.getTask(task0.id, project0.id)
+  if (!task_updated) { console.error(`failed to get task after update`);process.exit(1) }
+  if (new Date(task0.date_updated) === new Date(task_updated.date_updated)) { console.error(`failed to update task update date`);process.exit(1) }
+  if (task_updated.name !== taskUpdates.name) { console.error(`task name failed to update`);process.exit(1) }
+
   console.log('delete task')
   // man its crazy for task, child of project not to have projectId as a prop but we dont need to. will probably
   // break and add it anyway once the UI starts up
   dal.deleteTask(task0.id, project0.id);await util.delay(100) // I really like tiny delays after disk operations
 
   const deletedTask = dal.getTask(task0.id, project0.id)
-  if (deletedTask) { throw `found task when it shouldve been deleted` }
+  if (deletedTask) { console.error(`found task when it shouldve been deleted`);process.exit(1) }
 }
 async function project() {
   console.log('dal data', dal.data)
@@ -56,8 +69,8 @@ async function project() {
   let date = new Date()
   const project0 = {
     id: util.uuid(),
-    date_create: date.toISOString(),
-    date_update: date.toISOString(),
+    date_created: date.toISOString(),
+    date_updated: date.toISOString(),
     name: `project name 0`,
     description: 'description',
     stories: [],
@@ -72,8 +85,8 @@ async function project() {
   await util.delay(100)
   const project1 = {
     id: util.uuid(),
-    date_create: date.toISOString(),
-    date_update: date.toISOString(),
+    date_created: date.toISOString(),
+    date_updated: date.toISOString(),
     name: `project name 1`,
     description: 'description',
     stories: [],
@@ -108,8 +121,8 @@ async function project() {
   console.log('update project success')
   const project2 = {
     id: util.uuid(),
-    date_create: date.toISOString(),
-    date_update: date.toISOString(),
+    date_created: date.toISOString(),
+    date_updated: date.toISOString(),
     name: `name original`,
     description: 'description original',
     stories: [],
