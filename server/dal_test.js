@@ -1,17 +1,53 @@
 const util = require('./util')
 const Dal = require('./dal')
 const dal = new Dal({testing:true})
-
+const constants = require('./constants')
 ;(async () => {
   await util.delay(100)
-  await project()
-  
+  //await project()
+  await task()
 
   process.exit(0)
 })()
 
 async function task() {
-  throw 'unimplemented'
+  console.log('create task')
+  let date = new Date()
+  const project0 = {
+    id: util.uuid(),
+    date_create: date.toISOString(),
+    date_update: date.toISOString(),
+    name: `project name 0`,
+    description: 'description',
+    stories: [],
+    tasks: [],
+    tags: [],
+  }
+  dal.createProject(project0);await util.delay(100)
+  
+  // leaning towards .status being non nullable but im lazy right now
+  const task0 = {
+    ...constants.schema.task,
+    id: util.uuid(),
+    date_create: date.toISOString(),
+    date_update: date.toISOString(),
+    name: 'task name 0',
+    description: 'task description 0',
+  }
+  dal.createTask(project0.id, task0);await util.delay(100)
+
+  console.log('get task')
+  const task0_fetched = dal.getTask(task0.id, project0.id)
+  if (task0.id !== task0_fetched.id) { throw `really stupid error occurred` }
+  console.log(task0_fetched)
+  
+  console.log('delete task')
+  // man its crazy for task, child of project not to have projectId as a prop but we dont need to. will probably
+  // break and add it anyway once the UI starts up
+  dal.deleteTask(task0.id, project0.id);await util.delay(100) // I really like tiny delays after disk operations
+
+  const deletedTask = dal.getTask(task0.id, project0.id)
+  if (deletedTask) { throw `found task when it shouldve been deleted` }
 }
 async function project() {
   console.log('dal data', dal.data)
