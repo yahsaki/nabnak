@@ -97,6 +97,8 @@ const validate = {
         }
       }
 
+      // TODO: add tag check
+
       return errors
     },
   },
@@ -119,24 +121,82 @@ const validate = {
       let errors = []
       if (Object.hasOwn(args.q, 'id')) {
         if (!args.q.id.length) {
-          errors.push('query parameter id invalid')
+          errors.push('query parameter id required')
         }
       }
 
       if (!args.q.projectId?.length) {
-        errors.push('query parameter projectId invalid')
+        errors.push('query parameter projectId required')
+      } else {
+        const project = dal.projects.find(x => x.id === args.q.projectId)
+        if (!project) {
+          errors.push(`project not found`)
+        }
       }
 
       return errors
     },
     post: (args) => {
-      throw 'unimplemented'
+      const errors = []
+      const task = args?.body?.task
+      const project = dal.projects.find(x => x.id === args.q.projectId)
+
+      if (!project) { errors.push(`projectId invalid`);return errors }
+      if (!task.name) { errors.push(`task name must not be empty`) }
+
+      if (!Array.isArray(task.tags)) { errors.push(`tags must be an array(of strings)`) }
+      else {
+        const tagDupes = helpers.checkForTagDupes(task.tags)
+        if (tagDupes.length) { errors.push(`found duplicate tags '${tagDupes.join(', ')}'`) }
+      }
+
+      // at the moment we wont be creating comments at this point but at some point I do plan on supporting that
+
+      return errors
     },
     delete: (args) => {
       throw 'unimplemented'
     },
     update: (args) => {
-      throw 'unimplemented'
+      let errors = []
+      if (!args.q.id?.length) {
+        errors.push('query parameter id required');return errors
+      }
+      if (!args.q.projectId?.length) {
+        errors.push('query parameter projectId required');return errors
+      }
+      if (errors.length) { return errors }
+
+      const project = dal.getProject(args.q.projectId)
+      if (!project) { errors.push(`query parameter projectId invalid`);return }
+      const task = project.tasks.find(x => x.id === args.q.id)
+      if (!task) { errors.push(`query parameter id invalid`);return }
+
+      const updateableFields = ['name','description','acceptanceCriteria','tags','status']
+      for (const prop in args.body) {
+        if (!~updateableFields.indexOf(prop)) {
+          errors.push(`field '${prop}' not updateable`)
+        }
+      }
+
+      if (!args.body.name?.length) {
+        errors.push(`name field cannot be empty`)
+      }
+      if (Object.hasOwn(args.body, 'status')) {
+        if (!constants.status[args.body.status]) {
+          errors.push('status invalid')
+        }
+      }
+
+      if (Object.hasOwn(args.body, 'tags')) {
+        if (!Array.isArray(args.body.tags)) { errors.push(`tags must be an array(of strings)`) }
+        else {
+          const tagDupes = helpers.checkForTagDupes(args.body.tags)
+          if (tagDupes.length) { errors.push(`found duplicate tags '${tagDupes.join(', ')}'`) }
+        }
+      }
+
+      return errors
     },
     comment: {
       post: (args) => {
@@ -188,8 +248,8 @@ class Handler {
       const project = args.body.project
       const date = new Date()
       project.id = util.uuid()
-      project.date_create = date.toISOString()
-      project.date_update = date.toISOString()
+      project.date_created = date.toISOString()
+      project.date_updated = date.toISOString()
       dal.createProject(project)
 
       args.res.writeHead(204)
@@ -269,16 +329,70 @@ class Handler {
   }
   task = {
     get: (args) => {
-      throw 'unimplemented'
+      const errors = validate.task.get(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      let responseData
+      if (Object.hasOwn(args.q, 'id')) {
+        responseData = dal.getTask(args.q.id, args.q.projectId)
+      } else {
+        const project = dal.getProject(args.q.projectId)
+        responseData = project.tasks
+      }
+
+      args.res.setHeader('Content-Type', 'application/json')
+      args.res.writeHead(200)
+      args.res.end(JSON.stringify({data:responseData}))
+      return responseData
     },
     post: (args) => {
-      throw 'unimplemented'
+      if (!args.body.task) { args.body.task = {} }
+      args.body.task = {...constants.schema.task, ...args.body.task}
+
+      const errors = validate.task.post(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      const task = args.body.task
+      const date = new Date()
+      task.id = util.uuid()
+      task.date_created = date.toISOString()
+      task.date_updated = date.toISOString()
+      task.status = constants.status.todo
+      const createTaskResult = dal.createTask(args.q.projectId, task)
+      if (!createTaskResult.success) {
+        args.res.writeHead(500);args.res.end();return
+      }
+
+      args.res.writeHead(204)
+      args.res.end(JSON.stringify({data:{taskId:task.id}}))
+      return task.id
     },
     delete: (args) => {
       throw 'unimplemented'
     },
     update: (args) => {
-      throw 'unimplemented'
+      const errors = validate.task.update(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      const task = dal.getTask(args.q.id, args.q.projectId)
+
+      const date = new Date()
+      if (args.body.status === constants.status.inprogress && task.status === constants.status.todo) {
+        args.body.date_started = date.toISOString()
+      }
+      if (args.body.status === constants.status.done && task.status !== constants.status.done) {
+        args.body.date_completed = date.toISOString()
+      }
+
+      const updateTaskResult = dal.updateTask(args.q.id, args.q.projectId, args.body)
+      if (!updateTaskResult.success) {
+        // this can happen if no fields are updating which would be 2XX theoretically
+        args.res.writeHead(500);args.res.end();return
+      }   
+
+      args.res.writeHead(204)
+      args.res.end()
+      return
     },
     comment: {
       post: (args) => {

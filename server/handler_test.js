@@ -35,11 +35,46 @@ const getArgBase = () => {
   }
 }
 ;(() => {
-  project()
-
+  //project()
+  task()
   process.exit(0)
 })()
+function task() {
+  let args = getArgBase()
+  args.body.project = {
+    name: 'project name 0',
+    description: 'description'
+  }
+  const projectId = handler.project.post(args)
+  
+  console.log('task: create task')
+  args = getArgBase()
+  args.body.task = { name: 'task name 0' }
+  args.q.projectId = projectId
 
+  const taskId = handler.task.post(args)
+  console.log('taskId', taskId)
+
+  console.log('task: update task')
+  args = getArgBase()
+  args.body = { name: 'task name updated 0' }
+  args.q.id = taskId
+  args.q.projectId = projectId
+  handler.task.update(args)
+  if (current.httpCode !== 204) { throw `failed to update task` }
+
+  console.log('task: get task')
+  args = getArgBase()
+  args.q.id = taskId
+  args.q.projectId = projectId
+  const task = handler.task.get(args)
+  if (!task) { throw `failed to get task by id` }
+  console.log('task', task)
+  // im barely validating happy path at this point
+
+  console.log('task tests ran successfully')
+  return
+}
 function project() {
   let args = getArgBase()
   args.body.project = {

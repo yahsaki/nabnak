@@ -33,7 +33,7 @@ module.exports = {
   status: {
     todo: 'todo',
     inprogress: 'inprogress',
-    complete: 'complete'
+    done: 'done'
   },
   priority: {
     low: 'low',
