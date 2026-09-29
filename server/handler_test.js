@@ -72,6 +72,14 @@ function task() {
   console.log('task', task)
   // im barely validating happy path at this point
 
+  console.log('task: delete task')
+  args = getArgBase()
+  args.q.id = taskId
+  args.q.projectId = projectId
+  handler.task.delete(args)
+  if (current.httpCode !== 204) { throw `failed to delete task` } 
+  // as ive said just above, missing all manner of checks. did verify that the task is deleted in the json
+  
   console.log('task tests ran successfully')
   return
 }

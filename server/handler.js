@@ -155,7 +155,23 @@ const validate = {
       return errors
     },
     delete: (args) => {
-      throw 'unimplemented'
+      let errors = []
+      if (!args.q.id.length) {
+        errors.push('query parameter id required')
+      }
+
+      if (!args.q.projectId?.length) {
+        errors.push('query parameter projectId required')
+      } else {
+        const project = dal.projects.find(x => x.id === args.q.projectId)
+        if (!project) {
+          errors.push(`project not found`)
+        } else {
+          // 260928: check for task? would need to change dal.projects to dal.getProject, no biggie
+        }
+      }
+
+      return errors
     },
     update: (args) => {
       let errors = []
@@ -368,7 +384,18 @@ class Handler {
       return task.id
     },
     delete: (args) => {
-      throw 'unimplemented'
+      const errors = validate.task.delete(args)
+      if (errors.length) { args.res.writeHead(400);args.res.end(`{"error":"${errors.join(', ')}"}`);return }
+
+      const deleteRes = dal.deleteTask(args.q.id, args.q.projectId)
+      if (deleteRes.success) {
+        args.res.writeHead(204)
+      } else {
+        args.res.writeHead(404)
+      }
+
+      args.res.end()
+      return deleteRes
     },
     update: (args) => {
       const errors = validate.task.update(args)

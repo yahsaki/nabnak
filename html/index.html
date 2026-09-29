@@ -6,6 +6,76 @@
     </style>
   </head>
   <body>
-    
+    <script>
+      var _ = {
+        mode: null,
+        clean: () => {
+          const head = document.querySelector('head')
+          // this line means all of our whatsitcalled props will go bye bye
+          while (head.firstChild) { head.removeChild(head.firstChild) }
+          const body = document.querySelector('body')
+          for (let i = 0;i < body.children.length; i++) {
+            if (body.children[i].localName !== 'script') {
+              body.children[i].remove()
+            }
+          }
+        },
+        helpers: {
+          delay: ms => new Promise((resolve => setTimeout(() => resolve(), ms))),
+          createElement: (type, attribs = [], text = null, parent = null) => {
+            const element = document.createElement(type)
+            if (text) element.textContent = text
+            attribs.forEach(a => { element.setAttribute(a.name, a.val) })
+            if (parent) parent.appendChild(element)
+            return element
+          },
+          trigger: (el, eventType) => {
+            if (typeof eventType === 'string' && typeof el[eventType] === 'function') {
+              el[eventType]()
+            } else {
+              const event =
+                typeof eventType === 'string'
+                  ? new Event(eventType, {bubbles: true})
+                  : eventType
+              el.dispatchEvent(event)
+            }
+          },
+        },
+        init: () => {
+          _.clean()
+          if (typeof _.current?.css === 'function') { _.current.css() }
+          if (typeof _.current?.html === 'function') { _.current.html() }
+          if (typeof _.current?.script === 'function') { _.current.script() }
+          // always call onLoad last
+          if (typeof _.current?.onLoad === 'function') { _.current.onLoad() }
+        },
+        current: {css:null,html:null,script:null},
+        load: {},
+      }
+    </script>
+    <script id="src-projects" src="scripts/projects.js"></script>
+    <script>
+      // how about we start with a list of projects
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.location.protocol === 'file:') {
+          alert('host me properly please otherwise I wont work')
+          const body = document.querySelector('body')
+          for (let i = 0; i < body.children.length; i++) {
+            if (body.children[i].localName !== 'script') {
+              body.children[i].remove()
+            }
+          }
+          const el = document.createElement('span')
+          el.setAttribute('style', 'font-size:100px;font-weight:bold;color:red;')
+          el.innerText = "USE HTTP SERVER!"
+          body.appendChild(el)
+          return
+        }
+
+        console.log('document loaded')
+        _.load.projects()
+        _.init()
+      })
+    </script>
   </body>
 </html>
