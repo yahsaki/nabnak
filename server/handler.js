@@ -27,8 +27,8 @@ const validate = {
       const project = args?.body?.project
       const projects = dal.projects // not the full projects data set
 
-      console.log('validate.project.post: project', project)
-      console.log('validate.project.post: dal projects', projects)
+      //console.log('validate.project.post: project', project)
+      //console.log('validate.project.post: dal projects', projects)
 
       if (!project.name) { errors.push(`project name must not be empty`) }
       else {
