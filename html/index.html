@@ -9,6 +9,8 @@
     <script>
       var _ = {
         mode: null,
+        // TODO: cache projects here
+        data: {},
         clean: () => {
           const head = document.querySelector('head')
           // this line means all of our whatsitcalled props will go bye bye
@@ -50,10 +52,12 @@
           if (typeof _.current?.onLoad === 'function') { _.current.onLoad() }
         },
         current: {css:null,html:null,script:null},
+        // the term .load is inaccurate here but im not sure what the new name should be yet
         load: {},
       }
     </script>
     <script id="src-projects" src="scripts/projects.js"></script>
+    <script id="src-project" src="scripts/project.js"></script>
     <script>
       // how about we start with a list of projects
       document.addEventListener('DOMContentLoaded', () => {

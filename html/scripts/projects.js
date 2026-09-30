@@ -115,6 +115,8 @@ _.load.projects = () => {
             ], project.name)
             li.addEventListener('click', () => {
               console.log('TODO: implement render project view!')
+              _.load.project(project.id, project.name)
+              _.init()
             })
             list.appendChild(li)
           }
@@ -126,7 +128,7 @@ _.load.projects = () => {
   }
   _.current.html = () => {
     const title = document.createElement('title')
-    title.innerText = 'home'
+    title.innerText = 'nabnak | select project'
     document.head.append(title)
 
     const charset = document.createElement('meta')
